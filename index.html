@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>الكبير أوي | للموبايلات والإكسسوارات</title>
+<link rel="icon" href="assets/logo.png"><link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="top">🚚 توصيل داخل محافظة المنيا فقط <span>•</span> 📞 01065888065</div>
+<header><a class="logo" href="#"><img src="assets/logo.png"></a>
+<div class="search"><input id="q" placeholder="ابحث عن موبايل أو إكسسوار..." oninput="render()"><button onclick="render()">بحث</button></div>
+<div class="nav"><button onclick="openAccount()">👤 حسابي</button><button onclick="openCart()">🛒 السلة <b id="count">0</b></button></div></header>
+
+<section class="hero"><div><small>الكبير أوي • MINYA</small><h1>اختار موبايلك<br><em>بثقة.</em></h1><p>موبايلات وإكسسوارات أصلية، تجربة شراء سهلة، وتوصيل سريع داخل محافظة المنيا.</p><a class="gold" href="#products">تسوق الآن</a></div><img src="assets/logo.png"></section>
+
+<section class="section"><small>تصفح حسب النوع</small><h2>الأقسام</h2><div id="cats" class="cats"></div></section>
+<section id="products" class="section"><div class="title"><div><small>اختياراتنا</small><h2>المنتجات</h2></div><span id="results"></span></div><div id="grid" class="grid"></div></section>
+
+<section class="trust"><div><b>✓</b><strong>منتجات أصلية</strong><span>اختيارات موثوقة وضمان حسب المنتج</span></div><div><b>✓</b><strong>توصيل داخل المنيا</strong><span>نوصل لأي مكان داخل المحافظة</span></div><div><b>✓</b><strong>دعم مباشر</strong><span>01065888065</span></div></section>
+<section class="contact"><div><small>العنوان</small><h2>الكبير أوي للموبايلات والإكسسوارات</h2><p>شارع الحسيني — بحري مطعم المحمدي — محافظة المنيا</p></div><a class="gold" href="tel:01065888065">اتصل بنا</a></section>
+<footer><img src="assets/logo.png"><span>© 2026 الكبير أوي</span><a href="#" onclick="openAdmin();return false">لوحة التاجر</a></footer>
+
+<div id="modal" class="modal"><div class="box"><button class="x" onclick="closeModal()">×</button><div id="content"></div></div></div>
+<script>
+const CONFIG={SUPABASE_URL:"YOUR_SUPABASE_URL",SUPABASE_PUBLISHABLE_KEY:"YOUR_SUPABASE_PUBLISHABLE_KEY"};
+const hasDB=CONFIG.SUPABASE_URL.startsWith("http") && CONFIG.SUPABASE_PUBLISHABLE_KEY.startsWith("sb_");
+const db=hasDB?supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_PUBLISHABLE_KEY):null;
+let products=[
+{id:1,brand:"Apple",name:"iPhone 15",spec:"128GB • 6GB RAM",price:38999,image_url:"https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=700"},
+{id:2,brand:"Samsung",name:"Galaxy S24",spec:"256GB • 8GB RAM",price:32999,image_url:"https://images.unsplash.com/photo-1610945264803-c22b62d2a7b3?w=700"},
+{id:3,brand:"Xiaomi",name:"Xiaomi 14",spec:"512GB • 12GB RAM",price:27999,image_url:"https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=700"},
+{id:4,brand:"OPPO",name:"OPPO Reno 12",spec:"256GB • 12GB RAM",price:18999,image_url:"https://images.unsplash.com/photo-1592286927505-2fd6a0f3b6a8?w=700"},
+{id:5,brand:"Accessories",name:"AirPods Pro",spec:"USB-C • الجيل الثاني",price:8999,image_url:"https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=700"},
+{id:6,brand:"Accessories",name:"شاحن سريع 65W",spec:"USB-C • Fast Charge",price:1299,image_url:"https://images.unsplash.com/photo-1625842268584-8f3296236761?w=700"}];
+let cat="all",cart=JSON.parse(localStorage.kbCart||"[]");
+const money=n=>new Intl.NumberFormat("ar-EG").format(n)+" ج.م";
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+async function loadProducts(){if(!db)return;let {data,error}=await db.from("products").select("*").eq("active",true).order("created_at",{ascending:false});if(!error&&data?.length)products=data}
+function renderCats(){let brands=["all","Apple","Samsung","Xiaomi","OPPO","Accessories"];cats.innerHTML=brands.map(x=>`<button class="${cat===x?'on':''}" onclick="cat='${x}';renderCats();render()">${x==="all"?"🔥 الكل":x==="Accessories"?"🎧 إكسسوارات":x}</button>`).join("")}
+function render(){let query=(q.value||"").toLowerCase(),list=products.filter(p=>(cat==="all"||p.brand===cat)&&((p.name+" "+(p.spec||"")+" "+p.brand).toLowerCase().includes(query)));results.textContent=list.length+" منتج";grid.innerHTML=list.map(p=>`<article><div class="pic"><img src="${esc(p.image_url)}" alt="${esc(p.name)}"></div><div class="info"><small>${p.brand==="Accessories"?"إكسسوارات":esc(p.brand)}</small><h3>${esc(p.name)}</h3><span>${esc(p.spec||"")}</span><strong>${money(p.price)}</strong><button onclick="add(${p.id})">أضف للسلة</button></div></article>`).join("")}
+function save(){localStorage.kbCart=JSON.stringify(cart);count.textContent=cart.reduce((s,x)=>s+x.qty,0)}
+function add(id){let x=cart.find(x=>x.id===id);x?x.qty++:cart.push({id,qty:1});save();openCart()}
+function openCart(){let rows=cart.map((x,i)=>{let p=products.find(p=>p.id===x.id);return p?`<div class=row><span>${esc(p.name)} × ${x.qty}</span><b>${money(p.price*x.qty)}</b><button onclick="cart.splice(${i},1);save();openCart()">حذف</button></div>`:""}).join("");let total=cart.reduce((s,x)=>{let p=products.find(p=>p.id===x.id);return s+(p?p.price*x.qty:0)},0);show(`<h2>🛒 السلة</h2>${rows||"<p>السلة فارغة.</p>"}<h3>الإجمالي: ${money(total)}</h3>${rows?'<button class="gold" onclick="checkout()">إتمام الطلب</button>':""}`)}
+function checkout(){show(`<h2>تأكيد الطلب</h2><p class=note>التوصيل متاح داخل محافظة المنيا فقط — الدفع عند الاستلام.</p><div class=form><input id=name placeholder="الاسم بالكامل"><input id=phone placeholder="رقم الهاتف"><input id=gov value="المنيا" readonly><textarea id=addr placeholder="العنوان بالتفصيل داخل المنيا"></textarea><button class=gold onclick="placeOrder()">إرسال الطلب</button></div>`)}
+async function placeOrder(){if(!name.value||!phone.value||!addr.value)return alert("املأ البيانات كلها");let total=cart.reduce((s,x)=>{let p=products.find(p=>p.id===x.id);return s+p.price*x.qty},0);let {data:{user}}=db?await db.auth.getUser():{data:{user:null}};if(db){let {error}=await db.from("orders").insert({user_id:user?.id||null,customer_name:name.value,phone:phone.value,address:addr.value,total,status:"new",items:cart});if(error)return alert(error.message)}else{localStorage.kbOrders=JSON.stringify([{id:"KB-"+Date.now(),customer_name:name.value,phone:phone.value,address:addr.value,total,status:"new",items:cart},...JSON.parse(localStorage.kbOrders||"[]")])}cart=[];save();show("<h2>✅ تم إرسال الطلب</h2><p>تم استلام طلبك بنجاح وسنتواصل معك لتأكيده.</p>")}
+async function openAccount(){if(!db){show(`<h2>👤 حساب العميل</h2><p class=note>المتجر يعمل الآن كواجهة تجريبية. بعد ربط Supabase ستعمل الحسابات والطلبات الحقيقية.</p>`);return}let {data:{user}}=await db.auth.getUser();if(user){show(`<h2>مرحباً بك</h2><p>${esc(user.email)}</p><button class=dark onclick="myOrders()">📦 طلباتي</button><button class=gold onclick="logout()">تسجيل الخروج</button>`)}else show(`<h2>👤 حساب العميل</h2><div class=form><input id=aname placeholder="الاسم"><input id=aphone placeholder="رقم الهاتف"><input id=aemail type=email placeholder="البريد الإلكتروني"><input id=apass type=password placeholder="كلمة المرور (6 أحرف أو أكثر)"><button class=gold onclick="signup()">إنشاء حساب</button><button class=dark onclick="login()">تسجيل الدخول</button></div>`)}
+async function signup(){let {error}=await db.auth.signUp({email:aemail.value,password:apass.value,options:{data:{name:aname.value,phone:aphone.value}}});alert(error?error.message:"تم إنشاء الحساب. افحص بريدك إذا كان تأكيد البريد مفعلاً.")}
+async function login(){let {error}=await db.auth.signInWithPassword({email:aemail.value,password:apass.value});alert(error?error.message:"تم تسجيل الدخول");if(!error)openAccount()}
+async function logout(){await db.auth.signOut();openAccount()}
+async function myOrders(){let {data:{user}}=await db.auth.getUser();let {data,error}=await db.from("orders").select("*").eq("user_id",user.id).order("created_at",{ascending:false});if(error)return alert(error.message);show(`<h2>📦 طلباتي</h2>${(data||[]).map(o=>`<div class=order><b>${esc(o.id.slice(0,8))}</b><span>${money(o.total)}</span><strong>${statusAr(o.status)}</strong><small>${new Date(o.created_at).toLocaleString("ar-EG")}</small></div>`).join("")||"<p>لا توجد طلبات.</p>")}
+function statusAr(s){return ({new:"جديد",confirmed:"تم التأكيد",preparing:"جاري التجهيز",out_for_delivery:"خرج للتوصيل",delivered:"تم التسليم",canceled:"ملغي"})[s]||s}
+async function openAdmin(){if(!db){show("<h2>👑 لوحة التاجر</h2><p class=note>اربط Supabase لتفعيل لوحة الإدارة الحقيقية.</p>");return}let {data:{user}}=await db.auth.getUser();if(!user)return show("<h2>👑 لوحة التاجر</h2><p>سجل الدخول بحساب التاجر أولاً.</p>");let {data:p}=await db.from("profiles").select("role").eq("id",user.id).single();if(p?.role!=="admin")return show("<h2>⛔ غير مصرح</h2><p>الحساب الحالي ليس حساب تاجر.</p>");let {data:orders}=await db.from("orders").select("*").order("created_at",{ascending:false});show(`<h2>👑 لوحة التاجر</h2><div class=adminStats><b>${orders?.length||0}<small>إجمالي الطلبات</small></b><b>${money((orders||[]).reduce((s,o)=>s+(o.status!=="canceled"?o.total:0),0))}<small>قيمة الطلبات</small></b></div><h3>الطلبات</h3>${(orders||[]).map(o=>`<div class=order><b>${esc(o.customer_name)}</b><span>${money(o.total)}</span><small>${esc(o.phone)} — ${esc(o.address)}</small><select onchange="updateStatus('${o.id}',this.value)">${["new","confirmed","preparing","out_for_delivery","delivered","canceled"].map(s=>`<option value="${s}" ${o.status===s?"selected":""}>${statusAr(s)}</option>`).join("")}</select></div>`).join("")||"<p>لا توجد طلبات.</p>"}<hr><h3>إضافة منتج</h3><div class=form><input id=pn placeholder="اسم المنتج"><input id=pb placeholder="الشركة / القسم"><input id=ps placeholder="المواصفات"><input id=pp type=number placeholder="السعر"><input id=pi placeholder="رابط صورة المنتج"><button class=gold onclick="addProduct()">إضافة المنتج</button></div>`)}
+async function updateStatus(id,status){let {error}=await db.from("orders").update({status}).eq("id",id);if(error)alert(error.message)}
+async function addProduct(){let {data:{user}}=await db.auth.getUser();let {data:profile}=await db.from("profiles").select("role").eq("id",user.id).single();if(profile?.role!=="admin")return alert("ليس لديك صلاحية تاجر");let {error}=await db.from("products").insert({name:pn.value,brand:pb.value,spec:ps.value,price:+pp.value,image_url:pi.value,active:true});alert(error?error.message:"تمت إضافة المنتج");if(!error){await loadProducts();render();openAdmin()}}
+function show(x){content.innerHTML=x;modal.classList.add("show")}function closeModal(){modal.classList.remove("show")}
+loadProducts().then(()=>{renderCats();render();save()});
+</script></body></html>
